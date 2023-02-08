@@ -1,0 +1,45 @@
+{
+	"generals" : {
+		"name" : "Hermitian-Graphical-LASSO",
+		"version" : "v.01",
+		"version_date" : "02-06-2023",
+		"version_number" : 10,
+        "test_data_url": "https://lstneuro-my.sharepoint.com/:u:/g/personal/cc-lab_neuroinformatics-collaboratory_org/EQVy7Y3oL9lDqS4_aNwglCsBMngspSuQ6yVudDj1xUOhgA?download=1",
+		"url_check" : "https://raw.github.com/CCC-members/Hermitian-Graphical-LASSO/master/app_config/properties.json",
+        "base_url"  : "https://codeload.github.com/CCC-members/Hermitian-Graphical-LASSO/zip/master"        
+        },
+    "matlab_runtime": {
+         "description":"Do not change",
+         "mac":"http://ssd.mathworks.com/supportfiles/downloads/R2018b/deployment_files/R2018b/installers/maci64/MCR_R2018b_maci64_installer.dmg.zip",
+         "win":"http://ssd.mathworks.com/supportfiles/downloads/R2018b/deployment_files/R2018b/installers/win64/MCR_R2018b_win64_installer.exe",
+         "linux":"http://ssd.mathworks.com/supportfiles/downloads/R2018b/deployment_files/R2018b/installers/glnxa64/MCR_R2018b_glnxa64_installer.zip"
+    },
+    "check_matlab_version":false,
+    "check_app_update":false,    
+    "run_bash_mode":{
+        "description":"default <<true>>. Run on server <<true>>  or Run with visual interface <<false>>",
+        "value":true,
+        "disabled_graphics":false,
+        "use_gpu":true,
+        "predefinition_params":"default"
+    },    
+    "general_params_file":{
+        "description":"Define bcv_general_params. you can change the file and save different conbinations.",
+        "file_path":"app_config/general_params.json"
+    },
+    "activ_params_file":{
+        "description":"Define activation_params. you can change the file and save different conbinations.",
+        "module_id":"activation_params",
+        "file_path":"app_config/activation_params.json"
+    },
+    "conn_params_file":{
+        "description":"Define connectivity_params. you can change the file and save different conbinations.",
+        "module_id":"connectivity_params",
+        "file_path":"app_config/connectivity_params.json"
+    },
+    "spectral_params_file":{
+        "description":"Define connectivity_params. you can change the file and save different conbinations.",
+        "module_id":"spectral_params",
+        "file_path":"app_config/spectral_params.json"
+    }   
+}
