@@ -1,4 +1,4 @@
-function [subject,properties] = sensor_level_analysis(Svv,band,subject,properties)
+function [subject,properties] = sensor_level_analysis(band,subject,properties)
 
 disp('=================================================================');
 
@@ -7,14 +7,34 @@ text_level      = 'Sensor_level';
 %%
 %% Preparing params
 %%
-
-Lvj           = subject.HeadModel.Ke;
+Lvj           = subject.Headmodel.Ke;
 Cdata        = subject.Cdata;
 Sh           = subject.Shead;
 cmap_a       = properties.cmap_a;
 cmap_c       = properties.cmap_c;
 str_band     = properties.str_band;
-Nseg         = properties.Nseg;
+
+%%
+%%
+%%
+disp('BC-V-->> Estimating cross-spectra for M/EEG data.');
+spectral_prop           = properties.spectral_params;
+spectral_prop.band      = band;
+[Svv,M]                 = cross_spectra(subject, spectral_prop);
+properties.sensor_level_out.M = M;
+properties.sensor_level_out.Svv = Svv;
+
+%%
+%%
+%%
+disp('-->> Applying average reference.');
+[Svv(:,:),Lvj] = applying_reference(Svv(:,:),Lvj);    % applying average reference...
+
+%% Adding fieltrip external functions
+f_path          = mfilename('fullpath');
+[ref_path,~,~]  = fileparts(fileparts(fileparts(f_path)));
+addpath(genpath(fullfile(ref_path,'external/fieldtrip')));
+ft_defaults
 
 %%
 %% Test
@@ -48,15 +68,15 @@ cfg     = [];
 topo    = [];
 if(isequal(subject.modality,'MEG'))
     %% MEG topography
-    if(isequal(properties.sensor_params.fieldtrip.layout.value,'4D248_helmet.mat'))
-        cfg.layout          = properties.sensor_params.fieldtrip.layout.value;
+    if(isequal(properties.general_params.fieldtrip.layout.value,'4D248_helmet.mat'))
+        cfg.layout          = properties.general_params.fieldtrip.layout.value;
         cfg.channel         = 'meg';
         cfg.markers         = '.';
         cfg.markersymbol    = '.';
         cfg.colormap        = cmap_a;
         cfg.markersize      = 3;
         cfg.markercolor     = [1 1 1];
-    elseif(isequal(properties.sensor_params.fieldtrip.layout.value,'4D248_helmet.mat'))
+    elseif(isequal(properties.general_params.fieldtrip.layout.value,'4D248_helmet.mat'))
         
     end
     topo.sens           = elec_data;
@@ -69,7 +89,7 @@ if(isequal(subject.modality,'MEG'))
 else
     %% EEG topography
     cfg.marker          = '';
-    cfg.layout          = properties.sensor_params.fieldtrip.layout.value;   
+    cfg.layout          = properties.general_params.fieldtrip.layout.value;   
     cfg.channel         = 'eeg';
     cfg.markersymbol    = '.';
     cfg.colormap        = cmap_a;
@@ -87,7 +107,7 @@ title(['MEG' ' ' band.name ' ' 'topography'])
 
 disp('-->> Saving figure');
 file_name = strcat('Scalp_2D','_',str_band,'.fig');
-saveas(figure_scalp_2D,fullfile(properties.pathname,file_name));
+saveas(figure_scalp_2D,fullfile(subject.subject_path,file_name));
 
 close(figure_scalp_2D);
 
@@ -133,7 +153,7 @@ axis equal;
 axis off;
 disp('-->> Saving figure');
 file_name = strcat('Scalp_3D','_',str_band,'.fig');
-saveas(figure_scalp_3D,fullfile(properties.pathname,file_name));
+saveas(figure_scalp_3D,fullfile(subject.subject_path,file_name));
 
 close(figure_scalp_3D);
 
@@ -170,7 +190,7 @@ title('Scalp','Color','k','FontSize',16);
 
 disp('-->> Saving figure');
 file_name = strcat('Covariance_Matrix','_',str_band,'.fig');
-saveas(figure_scalp_electrodes,fullfile(properties.pathname,file_name));
+saveas(figure_scalp_electrodes,fullfile(subject.subject_path,file_name));
 
 close(figure_scalp_electrodes);
 
@@ -180,23 +200,7 @@ close(figure_scalp_electrodes);
 disp('-->> Saving file')
 file_name = strcat('Sensor_level_',str_band,'.mat');
 disp(strcat("File: ", file_name));
-peak_pos = properties.peak_pos;
-parsave(fullfile(properties.pathname ,file_name ),Svv,peak_pos,Nseg,band);
-reference_path = strsplit(properties.pathname,subject.name);
-
-if(~isfield(properties.BC_V_info,'sensor_level'))
-    iter = 1;
-else
-    iter = length(properties.BC_V_info.sensor_level) + 1;
-end
-properties.BC_V_info.sensor_level(iter).Comment     = 'Sensor_level';
-[~,band_name,~]                                     = fileparts(reference_path{2});
-properties.BC_V_info.sensor_level(iter).Band        = band_name;
-properties.BC_V_info.sensor_level(iter).Freq        = char(str_band);
-properties.BC_V_info.sensor_level(iter).Ref_path    = strrep(reference_path{2},'\','/');
-properties.BC_V_info.sensor_level(iter).Name        = file_name;
-
-    
+parsave(fullfile(subject.subject_path ,file_name ),Svv,M,band);    
 pause(1e-12);
 
 end

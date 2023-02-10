@@ -2,9 +2,9 @@ function process_error = process_analysis_interface(subject, properties)
 
 process_error = [];
 
-if(iscell(subject.MEEG.data))
-    subject.MEEG.data = cell2mat(subject.MEEG.data(1,1:end));
-end
+% if(iscell(subject.MEEG.data))
+%     subject.MEEG.data = cell2mat(subject.MEEG.data(1,1:end));
+% end
 bands = properties.spectral_params.frequencies;
 for i=1:length(bands)
     band = bands(i);    
@@ -14,23 +14,21 @@ for i=1:length(bands)
         %% Estimating cross-spectra
         %%
         disp(strcat( 'BC-V-->> Sensor level for frequency band: (' , band.name , ') ' , string(band.f_start), 'Hz-->' , string(band.f_end) , 'Hz') );
-        disp('BC-V-->> Estimating cross-spectra for M/EEG data.');
-        spectral_properties = properties.spectral_params;
-        spectral_properties.band = band;
-        [Svv_band,~,PSD,Nseg] = cross_spectra(subject, spectral_properties);
-        [subject,properties]            = sensor_level_analysis(Svv,band,subject,properties);
+        
+        [subject,properties]    = sensor_level_analysis(band,subject,properties);
         disp('-->> Applying average reference.');
-        %%
-        %% Estimating Activation
-        %%
-        [stat,J,T,indms,properties] = activation_level_sssblpp(subject,properties);
-        
-        
-        %%
-        %% Estimating Connectivity
-        %%
-        properties.connectivity_params.hg_lasso_th      = analysis_method.(method_name).hg_lasso_th;
-        [Thetajj,Sjj,Sigmajj]                           = connectivity_level_hg_lasso(subject,properties);
+%         %%
+%         %% Estimating Activation
+%         %%
+%         [subject,properties]        = get_activation_priors(subject,properties);
+%         [stat,J,T,indms,properties] = activation_level_sssblpp(subject,properties);
+%         
+%         
+%         %%
+%         %% Estimating Connectivity
+%         %%
+%         properties.connectivity_params.hg_lasso_th      = analysis_method.(method_name).hg_lasso_th;
+%         [Thetajj,Sjj,Sigmajj]                           = connectivity_level_hg_lasso(subject,properties);
     end
 end
 

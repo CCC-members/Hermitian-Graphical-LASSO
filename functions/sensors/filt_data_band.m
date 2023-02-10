@@ -10,23 +10,23 @@ if(~exist('use_gpu','var'))
     use_gpu = false;
 end
 Nf                     = size(W,2);
-deltaf                 = Fs/(Nf/2);
+deltaf                 = Fs/Nf;
 F                      = 0:deltaf:(Nf-1)*deltaf;
-band                   = find(F == Fmin):find(F == Fmax);
-band_window            = exp(-(F-Fmin).^2/(2*var^2)) + ...
-                         exp(-(F-(F(end)-Fmin)).^2/(2*var^2)) + ...
-                         exp(-(F-Fmax).^2/(2*var^2)) + ...
-                         exp(-(F-(F(end)-Fmax)).^2/(2*var^2));
+[~,Imin]               = min(abs(F-Fmin));
+Fmin                   = F(Imin);
+[~,Imax]               = min(abs(F-Fmax));
+Fmax                   = F(Imax);
+band                   = Imin:Imax;
+band_window            = exp(-(F-Fmin).^2/(2*var^2)) + exp(-(F-Fmax).^2/(2*var^2));
 band_window(band)      = 1;
-band_window(Nf - band) = 1;
+band_window            = band_window + flip(band_window,2);
 band_window            = band_window/sum(band_window);
 if (use_gpu)
     W               = gpuArray(W).*repmat(gpuArray(band_window),size(W,1),1,size(W,3));
-    dataFilt        = ifft(W,[],2);
-    dataFilt        = gather(real(dataFilt(:,1:(Nf/2),:)));
+    dataFilt        = ifft(W,[],2,'symmetric');
+    dataFilt        = gather(dataFilt(:,1:Nf,:));
 else
     W               = W.*repmat(band_window,size(W,1),1,size(W,3));
-    dataFilt        = ifft(W,[],2);
-    dataFilt        = real(dataFilt(:,1:(Nf/2),:));
+    dataFilt        = ifft(W,[],2,'symmetric');
 end
 end

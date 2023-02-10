@@ -1,4 +1,4 @@
-function [Svv_band,Lvj,PSD,Nseg] = cross_spectra(subject, properties)
+function [Svv,M] = cross_spectra(subject, properties)
 
 
 % Authors:
@@ -17,9 +17,7 @@ function [Svv_band,Lvj,PSD,Nseg] = cross_spectra(subject, properties)
 %% Preparing params
 %%
 data    = subject.MEEG.data;
-Lvj     = subject.Headmodel.Ke;
 Fs      = properties.samp_freq.value;       % sampling frequency
-Fmax    = properties.max_freq.value;        % maximum frequency
 deltaf  = properties.freq_resol.value;      % frequency resolution
 varf    = properties.freq_gfiltvar.value;   % gaussian filter variance
 Nw      = properties.win_order.value;       % Slepian windows
@@ -32,11 +30,15 @@ warning off;
 rmpath(genpath(fullfile('external/fieldtrip')));
 warning on;
 % estimates the Cross Spectrum of the input M/EEG data
-[Svv_band,Nseg] = xspectrum_band(data, band, Fs, deltaf, varf, Nw);
-PSD = [];
-disp('-->> Applying average reference.');
+Svv = zeros(size(data{1},1));
+M   = 0;
+for seg = 1:length(data)
+    data_seg        = data{seg};
+    [Svv_seg,M_seg] = xspectrum_band(data_seg, band, Fs, deltaf, varf, Nw);
+    Svv             = Svv + Svv_seg;
+    M               = M + M_seg;
+end
 
-[Svv_band(:,:),Lvj] = applying_reference(Svv_band(:,:),Lvj);    % applying average reference...
 
 
 

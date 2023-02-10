@@ -1,6 +1,5 @@
 *.asv
-data/Svv.mat
-data/Lvj.mat
+data/*
 tmp/
 resources/*
 *.prj
