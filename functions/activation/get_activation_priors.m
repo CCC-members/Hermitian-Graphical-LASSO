@@ -3,33 +3,29 @@ function [subject,properties] = get_activation_priors(subject,properties)
 disp('=================================================================');
 disp('BC-V-->> Getting activation priors.');
 
-Ke                      = subject.Ke;
-Sc                      = subject.Scortex;
-activation_params       = properties.activation_params;
-aSulc                   = activation_params.aSulc.value; % baseline of sulci curvature factor
-aGiri                   = activation_params.aGiri.value; % baseline of giri curvature factor
-bSulc                   = activation_params.bSulc.value; % scale of sulci curvature factor
-bGiri                   = activation_params.bGiri.value; % scale of giri curvature factor
-IsCurv                  = activation_params.IsCurv.value; % 0 (no compensation) 1 (giri and sulci curvature compensation)
-IsParcel                = activation_params.IsParcel.value; % 0 (no smoothness) 1 (parcel smoothness)
-IsNeigh                 = activation_params.IsNeigh.value;
-IsField                 = activation_params.IsField.value; % 1 (projected Lead Field) 3 (3D Lead Field)
-GridOrient              = subject.GridOrient;
-GridAtlas               = subject.GridAtlas;
-Atlas                   = Sc.Atlas(Sc.iAtlas).Scouts;
-Faces                   = Sc.Faces;
-run_bash_mode           = properties.run_bash_mode.value;
+Headmodel       = subject.Headmodel;
+Sc              = subject.Scortex;
+activ_params    = properties.activ_params.sssblpp_params;
+aSulc           = activ_params.aSulc.value; % baseline of sulci curvature factor
+aGiri           = activ_params.aGiri.value; % baseline of giri curvature factor
+bSulc           = activ_params.bSulc.value; % scale of sulci curvature factor
+bGiri           = activ_params.bGiri.value; % scale of giri curvature factor
+IsCurv          = activ_params.IsCurv.value; % 0 (no compensation) 1 (giri and sulci curvature compensation)
+IsParcel        = activ_params.IsParcel.value; % 0 (no smoothness) 1 (parcel smoothness)
+IsNeigh         = activ_params.IsNeigh.value;
+IsField         = activ_params.IsField.value; % 1 (projected Lead Field) 3 (3D Lead Field)
+Ke              = Headmodel.Ke;
+GridOrient      = Headmodel.GridOrient;
+GridAtlas       = Headmodel.GridAtlas;
+Atlas           = Sc.Atlas(Sc.iAtlas).Scouts;
+Faces           = Sc.Faces;
 %%
 %% parcel/field options
 %%
 if(isempty(Atlas))
    IsParcel = 0; 
 end
-if(~run_bash_mode)
-    process_waitbar = waitbar(0,'Getting activation priors.','windowstyle', 'modal');
-    frames = java.awt.Frame.getFrames();
-    frames(end).setAlwaysOnTop(1);
-end
+
 disp('-->> Creating parcel smoother');
 if IsParcel == 0
     if (IsField == 1) || (IsField == 2)
@@ -66,11 +62,8 @@ subject.parcellation  = parcellation;
 %%
 %% neigh/field options
 %%
-if(~run_bash_mode)
-    waitbar(0.4,process_waitbar,strcat("Creating Laplacian & Normals. 40%"));   
-end
 disp('-->> Creating Laplacian & Normals');
-regLaplacian    = activation_params.regLaplacian.value;
+regLaplacian    = activ_params.regLaplacian.value;
 [D,D3D]         = graph_laplacian(Faces,regLaplacian);
 I               = speye(length(D));
 Dinv            = I/D;
@@ -110,9 +103,6 @@ subject.Winv    = Winv;
 %%
 %% curv/field options
 %%
-if(~run_bash_mode)
-    waitbar(0.8,process_waitbar,strcat("Creating curvature compensator. 80%"));   
-end
 disp('-->> Creating curvature compensator');
 if IsField == 1
     Ke                    = bst_gain_orient(Ke, GridOrient,GridAtlas);
@@ -150,9 +140,5 @@ if IsCurv == 1
 end
 
 subject.Ke = Ke;
-if(~run_bash_mode && exist('process_waitbar','var'))
-    waitbar(1,process_waitbar,strcat("Creating curvature compensator. 100%"));
-    delete(process_waitbar);
-end
  
 end

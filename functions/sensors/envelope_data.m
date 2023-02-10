@@ -12,11 +12,11 @@ if(~exist('use_seg','var'))
     use_seg = false;
 end
 
-[Nc,Nt_seg,Nseg]                     = size(data);                   % Nc: number of channels,Nt_deg: length of segments, Nseg: number of segments
+[Nc,Nt,Nw]                     = size(data);                   % Nc: number of channels,Nt_deg: length of segments, Nseg: number of segments
 if(use_gpu)
-    dataEnv = gpuArray(zeros(Nc,Nt_seg,Nseg));
+    dataEnv = gpuArray(zeros(Nc,Nt,Nw));
 else
-    dataEnv = zeros(Nc,Nt_seg,Nseg);
+    dataEnv = zeros(Nc,Nt,Nw);
 end
 Settings.EnvelopeParams.takeLogs     = false;                        % perform analysis on logarithm of envelope. This improves normality assumption
 Settings.EnvelopeParams.absolute     = false;                        % absolute power envelope
@@ -26,21 +26,21 @@ Settings.EnvelopeParams.windowLength = deltat;                       % sliding w
 Settings.EnvelopeParams.useFilter    = false;                        % use a more sophisticated filter than a sliding window average
 
 if (use_seg)
-    time_span = 0:(1/Fs):Nt_seg*(1/Fs);
-    for seg = 1:Nseg
+    time_span = 0:(1/Fs):Nt*(1/Fs);
+    for window = 1:Nw
         if use_gpu
-            [dataEnv(:,:,seg), ~, ~] = ROInets.envelope_data(gpuArray(squeeze(data(:,:,seg))),time_span,Settings.EnvelopeParams);
+            [dataEnv(:,:,window), ~, ~] = ROInets.envelope_data(gpuArray(squeeze(data(:,:,window))),time_span,Settings.EnvelopeParams);
         else
-            [dataEnv(:,:,seg), ~, ~] = ROInets.envelope_data(squeeze(data(:,:,seg)),time_span,Settings.EnvelopeParams);
+            [dataEnv(:,:,window), ~, ~] = ROInets.envelope_data(squeeze(data(:,:,window)),time_span,Settings.EnvelopeParams);
         end
     end
 else
-    time_span = 0:(1/Fs):Nt_seg*Nseg*(1/Fs);
+    time_span = 0:(1/Fs):Nt*Nw*(1/Fs);
     if use_gpu
-        [dataEnv, ~, ~] = ROInets.envelope_data(gpuArray(reshape(data,Nc,Nt_seg*Nseg)),time_span,Settings.EnvelopeParams);
+        [dataEnv, ~, ~] = ROInets.envelope_data(gpuArray(reshape(data,Nc,Nt*Nw)),time_span,Settings.EnvelopeParams);
     else
-        [dataEnv, ~, ~] = ROInets.envelope_data(reshape(data,Nc,Nt_seg*Nseg),time_span,Settings.EnvelopeParams);
+        [dataEnv, ~, ~] = ROInets.envelope_data(reshape(data,Nc,Nt*Nw),time_span,Settings.EnvelopeParams);
     end
-    data_Env            = reshape(dataEnv,Nc,Nt_seg,Nseg);
+    data_Env            = reshape(dataEnv,Nc,Nt,Nw);
 end
 end

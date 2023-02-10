@@ -21,23 +21,22 @@ cmap          = properties.cmap;
 Sc            = subject.Scortex;
 sub_to_FSAve  = subject.sub_to_FSAve;
 str_band      = properties.str_band;
-pathname      = properties.pathname;
+pathname      = subject.subject_path;
 
 %%
 %% Sensor level Outputs
 %%
 sensor_level_out    = properties.sensor_level_out;
 Nseg                = sensor_level_out.Nseg;
-peak_pos            = sensor_level_out.peak_pos;
 Svv                 = sensor_level_out.Svv;
 
 %%
 %% sSSBL++ activation parameters
 %%
-activation_params   = properties.activation_params;
-sssblpp_th          = activation_params.sssblpp_th.value;
-IsField             = activation_params.IsField.value; % 1 (projected Lead Field) 3 (3D Lead Field)
-IsCurv              = activation_params.IsCurv.value; % 0 (no compensation) 1 (giri and sulci curvature compensation)
+activ_params    = properties.activ_params.sssblpp_params;
+sssblpp_th      = activ_params.threshold.value;
+IsField         = activ_params.IsField.value; % 1 (projected Lead Field) 3 (3D Lead Field)
+IsCurv          = activ_params.IsCurv.value; % 0 (no compensation) 1 (giri and sulci curvature compensation)
 
 %%
 %% Activation Leakage Module spectral enet-ssbl
@@ -170,6 +169,13 @@ else
     figure_BC_VARETA1 = figure('Color','w','Name',figure_name,'NumberTitle','off'); hold on;
 end
 
+% Smoothing factor
+    smoothValue = 1;
+    SurfSmoothIterations = ceil(300 * smoothValue * length(iVertices) / 100000);
+    % Calculate smoothed vertices locations
+    Vertices_sm = sSurf.Vertices;
+    Vertices_sm(iVertices,:) = tess_smooth(sSurf.Vertices(iVertices,:), smoothValue, SurfSmoothIterations, sSurf.VertConn(iVertices,iVertices), 1);
+
 smoothValue          = 0.66;
 SurfSmoothIterations = 10;
 Vertices             = tess_smooth(Sc.Vertices, smoothValue, SurfSmoothIterations, Sc.VertConn, 1);
@@ -196,7 +202,7 @@ close(figure_BC_VARETA1);
 disp('-->> Saving file')
 properties.file_name = strcat('MEEG_source_',str_band,'.mat');
 disp(strcat("File: ", properties.file_name));
-parsave(fullfile(properties.pathname ,properties.file_name ),s2j,sigma2j,T,scaleSvv,scaleKe,stat,J,Jsp,indms,J_FSAve,Jsp_FSAve);
+parsave(fullfile(pathname ,properties.file_name ),s2j,sigma2j,T,scaleSvv,scaleKe,stat,J,Jsp,indms,J_FSAve,Jsp_FSAve);
 
 
 end

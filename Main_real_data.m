@@ -35,6 +35,7 @@ addpath(genpath('functions'));
 addpath(('external'));
 addpath(('external/osl_core'));
 addpath(genpath('external/MEG-ROI-nets'));
+addpath(('tools'));
 
 %% Printing data information
 app_properties = jsondecode(fileread(strcat('app_config/properties.json')));
@@ -60,9 +61,15 @@ if(app_properties.check_app_update)
 end
 
 properties                  = get_properties();
+color_map                   = load(properties.general_params.colormap_path);
+properties.cmap             = color_map.cmap;
+properties.cmap_a           = color_map.cmap_a;
+properties.cmap_c           = color_map.cmap_c;
 if(isequal(properties,'canceled'))
     return;
 end
+properties.general_params.workspace.input_path = fullfile(pwd,properties.general_params.workspace.input_path);
+properties.general_params.workspace.output_path = fullfile(pwd,properties.general_params.workspace.output_path);
 [status,reject_subjects]    = check_properties(properties);
 if(~status)
     fprintf(2,strcat('\nBC-V-->> Error: The current configuration files are wrong \n'));
